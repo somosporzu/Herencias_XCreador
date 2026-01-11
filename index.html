@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creador de Herencias - Sistema de Puntos</title>
+    <meta name="description" content="Herramienta web para crear herencias jugables equilibradas usando el sistema modular de puntos (PH)">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState } = React;
+
+        const HeritageCreator = () => {
+          const [name, setName] = useState('');
+          const [nature, setNature] = useState('');
+          const [description, setDescription] = useState('');
+          const [selectedTraits, setSelectedTraits] = useState([]);
+          const [notification, setNotification] = useState(null);
+
+          const scrollToSection = (sectionId) => {
+            const element = document.getElementById(sectionId);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          };
+
+          const traits = {
+            ventajas: {
+              mayor: [
+                { name: 'Aliento Elemental', cost: 3, desc: '1/día, infligen 1d6 de daño elemental en área cónica de 3m' },
+                { name: 'Brazos Adicionales', cost: 3, desc: 'Dos brazos extra. Pueden sostener objetos pero no atacar' },
+                { name: 'Corazón Secundario', cost: 3, desc: 'Primera vez que caen a 0 de Resistencia, quedan a 1' },
+                { name: 'Cuerpo Elemental', cost: 3, desc: 'Arma natural potente y Resistencia a un tipo de daño' },
+                { name: 'Glándulas de Seda', cost: 3, desc: 'Crean cuerdas (10m/día) o redes pequeñas' },
+                { name: 'Inmunidad a Enfermedades', cost: 3, desc: 'Inmunes a todas las enfermedades no mágicas' },
+                { name: 'Mente Telepática', cost: 3, desc: 'Comunicación mental con criaturas a 10m' },
+                { name: 'No Necesitan Dormir', cost: 3, desc: 'Solo 4 horas de meditación para descanso largo' },
+                { name: 'Piel Camaleónica', cost: 3, desc: 'Ventaja en sigilo para esconderse' },
+                { name: 'Piel de Piedra', cost: 3, desc: 'Ignoran 1 punto de daño de cualquier fuente' },
+                { name: 'Regeneración Leve', cost: 3, desc: 'Recuperan 3 de Resistencia al final de cada combate' },
+                { name: 'Sentido Ciego', cost: 3, desc: 'Pueden ver sin ojos en 5m. Inmunes a ceguera' },
+                { name: 'Vuelo Limitado', cost: 3, desc: 'Planean o vuelan distancias cortas' }
+              ],
+              medio: [
+                { name: 'Acróbatas Natos', cost: 2, desc: 'Ventaja en acrobacias y equilibrio' },
+                { name: 'Adherencia Mural', cost: 2, desc: 'Trepan superficies verticales sin tiradas' },
+                { name: 'Arma Natural Potente', cost: 2, desc: 'Garras/cuernos que infligen 1d6 daño' },
+                { name: 'Defensa Natural', cost: 2, desc: '+1 estable a Defensa' },
+                { name: 'Empatía Animal', cost: 2, desc: 'Comunicación simple con animales' },
+                { name: 'Memoria Prodigiosa', cost: 2, desc: 'Ventaja en tiradas para recordar' },
+                { name: 'Resistencia Aumentada', cost: 2, desc: '+5 a Resistencia máxima' },
+                { name: 'Visión en la Oscuridad', cost: 2, desc: 'Ven en oscuridad como penumbra' }
+              ],
+              menor: [
+                { name: 'Armas Naturales Débiles', cost: 1, desc: 'Garras/colmillos que infligen 1d6-3 daño' },
+                { name: 'Colas Prensiles', cost: 1, desc: 'Cola sostiene objetos pequeños' },
+                { name: 'Equilibrio Perfecto', cost: 1, desc: 'Ventaja para evitar caerse' },
+                { name: 'Fisiología Anfibia', cost: 1, desc: 'Respiran en aire y agua' },
+                { name: 'Orientación Natural', cost: 1, desc: 'Ventaja para no perderse' },
+                { name: 'Resistencia Climática', cost: 1, desc: 'Resisten mejor clima específico' }
+              ]
+            },
+            desventajas: {
+              menor: [
+                { name: 'Alergia Común', cost: -1, desc: 'Alérgico a algo común' },
+                { name: 'Fobia Común', cost: -1, desc: 'Fobia a algo común' },
+                { name: 'Huesos Frágiles', cost: -1, desc: 'Doble daño de caídas' },
+                { name: 'Mala Memoria', cost: -1, desc: 'Desventaja para recordar' },
+                { name: 'Olor Distintivo', cost: -1, desc: 'Desventaja en sigilo vs olfato' },
+                { name: 'Sangre Fría', cost: -1, desc: '-1 a tiradas en frío' }
+              ],
+              medio: [
+                { name: 'Atributo Reducido', cost: -2, desc: '-1 permanente a Atributo' },
+                { name: 'Dieta Especializada', cost: -2, desc: 'Solo comen comida específica' },
+                { name: 'Físico Inusual', cost: -2, desc: 'Equipo cuesta x2 para adaptar' },
+                { name: 'Resistencia Reducida', cost: -2, desc: '-2 a Resistencia máxima' },
+                { name: 'Sensible a Luz Solar', cost: -2, desc: 'Desventaja bajo luz solar' }
+              ],
+              mayor: [
+                { name: 'Ceguera', cost: -3, desc: 'No pueden ver' },
+                { name: 'Debilidad Elemental Mayor', cost: -3, desc: 'Vulnerables a elemento' },
+                { name: 'Dependencia de Agua', cost: -3, desc: 'Deben sumergirse 1h/día' },
+                { name: 'Sin Voz', cost: -3, desc: 'No pueden hablar' }
+              ]
+            }
+          };
+
+          const addTrait = (trait, type, category) => {
+            setSelectedTraits([...selectedTraits, { ...trait, type, category, id: Date.now() }]);
+          };
+
+          const removeTrait = (id) => {
+            setSelectedTraits(selectedTraits.filter(t => t.id !== id));
+          };
+
+          const calculateTotal = () => {
+            return selectedTraits.reduce((sum, trait) => sum + trait.cost, 0);
+          };
+
+          const isValid = () => {
+            const total = calculateTotal();
+            const traitCount = selectedTraits.length;
+            const hasDisadvantage = selectedTraits.some(t => t.cost < 0);
+            
+            return total === 0 && traitCount >= 2 && traitCount <= 7 && hasDisadvantage && name.trim() !== '' && nature.trim() !== '';
+          };
+
+          const getValidationStatus = () => {
+            const total = calculateTotal();
+            const traitCount = selectedTraits.length;
+            const hasDisadvantage = selectedTraits.some(t => t.cost < 0);
+            
+            const issues = [];
+            if (total !== 0) issues.push('Balance: ' + total + ' PH (debe ser 0)');
+            if (traitCount < 2) issues.push('Rasgos: ' + traitCount + '/7 (mínimo 2)');
+            if (traitCount > 7) issues.push('Rasgos: ' + traitCount + '/7 (máximo 7)');
+            if (!hasDisadvantage) issues.push('Falta desventaja');
+            if (!name.trim()) issues.push('Falta nombre');
+            if (!nature.trim()) issues.push('Falta naturaleza');
+            
+            return issues;
+          };
+
+          const exportAsText = () => {
+            const total = calculateTotal();
+            let text = '═══════════════════════════════════════\n';
+            text += '   HERENCIA: ' + name.toUpperCase() + '\n';
+            text += '═══════════════════════════════════════\n\n';
+            
+            if (description) {
+              text += description + '\n\n';
+            }
+            
+            text += 'NATURALEZA: ' + nature + '\n\n';
+            text += '───────────────────────────────────────\n';
+            text += 'RASGOS:\n';
+            text += '───────────────────────────────────────\n\n';
+            
+            selectedTraits.forEach(trait => {
+              const sign = trait.cost > 0 ? '+' : '';
+              text += '◆ ' + trait.name + ' (' + sign + trait.cost + ' PH)\n';
+              text += '  ' + trait.desc + '\n\n';
+            });
+            
+            text += '───────────────────────────────────────\n';
+            text += 'BALANCE TOTAL: ' + total + ' PH\n';
+            text += 'NÚMERO DE RASGOS: ' + selectedTraits.length + '\n';
+            text += '═══════════════════════════════════════\n';
+            
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name.replace(/\s+/g, '_') + '_herencia.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            setNotification('✅ Archivo de texto descargado exitosamente');
+            setTimeout(() => setNotification(null), 3000);
+          };
+
+          const exportAsImage = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = 800;
+            canvas.height = 600 + selectedTraits.length * 80;
+            
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+            
+            ctx.fillStyle = '#d4af37';
+            ctx.font = 'bold 48px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(name.toUpperCase(), canvas.width / 2, 90);
+            
+            let yPos = 160;
+            
+            ctx.fillStyle = '#8b4513';
+            ctx.fillRect(60, yPos, canvas.width - 120, 50);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('Naturaleza: ' + nature, 80, yPos + 33);
+            yPos += 80;
+            
+            ctx.fillStyle = '#d4af37';
+            ctx.font = 'bold 20px serif';
+            ctx.fillText('RASGOS', 60, yPos);
+            yPos += 35;
+            
+            selectedTraits.forEach(trait => {
+              const bgColor = trait.cost > 0 ? '#1e4d2b' : '#4d1e1e';
+              ctx.fillStyle = bgColor;
+              ctx.fillRect(60, yPos, canvas.width - 120, 70);
+              
+              ctx.fillStyle = trait.cost > 0 ? '#4ade80' : '#f87171';
+              ctx.font = 'bold 18px sans-serif';
+              ctx.textAlign = 'left';
+              const sign = trait.cost > 0 ? '+' : '';
+              ctx.fillText(trait.name + ' (' + sign + trait.cost + ' PH)', 80, yPos + 25);
+              
+              ctx.fillStyle = '#e0e0e0';
+              ctx.font = '14px sans-serif';
+              ctx.fillText(trait.desc, 80, yPos + 50);
+              
+              yPos += 80;
+            });
+            
+            yPos += 20;
+            const total = calculateTotal();
+            ctx.fillStyle = total === 0 ? '#4ade80' : '#f87171';
+            ctx.font = 'bold 28px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Balance Total: ' + total + ' PH', canvas.width / 2, yPos);
+            
+            canvas.toBlob(blob => {
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = name.replace(/\s+/g, '_') + '_herencia.png';
+              a.click();
+              URL.revokeObjectURL(url);
+              
+              setNotification('✅ Imagen descargada exitosamente');
+              setTimeout(() => setNotification(null), 3000);
+            });
+          };
+
+          const total = calculateTotal();
+          const issues = getValidationStatus();
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+              {notification && (
+                <div className="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+                  {notification}
+                </div>
+              )}
+
+              <div className="hidden xl:block fixed left-4 top-1/2 transform -translate-y-1/2 bg-slate-800 rounded-lg shadow-xl p-4 border-2 border-slate-700 z-40">
+                <nav className="space-y-2">
+                  <button
+                    onClick={() => scrollToSection('info-basica')}
+                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-amber-400 rounded transition-colors text-sm"
+                  >
+                    📝 Información
+                  </button>
+                  <button
+                    onClick={() => scrollToSection('ventajas-mayor')}
+                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-green-400 rounded transition-colors text-sm"
+                  >
+                    ⭐ Ventajas Mayor
+                  </button>
+                  <button
+                    onClick={() => scrollToSection('ventajas-medio')}
+                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-green-400 rounded transition-colors text-sm"
+                  >
+                    ✨ Ventajas Medio
+                  </button>
+                  <button
+                    onClick={() => scrollToSection('ventajas-menor')}
+                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-green-400 rounded transition-colors text-sm"
+                  >
+                    💫 Ventajas Menor
+                  </button>
+                  <button
+                    onClick={() => scrollToSection('desventajas-menor')}
+                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-red-400 rounded transition-colors text-sm"
+                  >
+                   ⚠️ Desventajas Menor
+                  </button>
+                  <button
+                    onClick={() => scrollToSection('desventajas-medio')}
+                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-red-400 rounded transition-colors text-sm"
+                  >
+                    ⛔ Desventajas Medio
+                  </button>
+                  <button
+                    onClick={() => scrollToSection('desventajas-mayor')}
+                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-red-400 rounded transition-colors text-sm"
+                  >
+                    🚫 Desventajas Mayor
+                  </button>
+                  <button
+                    onClick={() => scrollToSection('resumen')}
+                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-blue-400 rounded transition-colors text-sm"
+                  >
+                    📊 Resumen
+                  </button>
+                </nav>
+              </div>
+              
+              <div className="max-w-7xl mx-auto">
+                <header className="text-center mb-8 pt-6">
+                  <h1 className="text-5xl font-bold text-amber-400 mb-2">Creador de Herencias</h1>
+                  <p className="text-slate-300 text-lg">Sistema modular de puntos (PH)</p>
+                </header>
+
+                <div className="grid lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2 space-y-6">
+                    <div id="info-basica" className="bg-slate-800 rounded-lg shadow-xl p-6 border-2 border-amber-600 scroll-mt-6">
+                      <h2 className="text-2xl font-bold text-amber-400 mb-4">Información Básica</h2>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-slate-300 mb-2 font-semibold">Nombre de la Herencia *</label>
+                          <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Ej: Draconidos"
+                            className="w-full px-4 py-2 bg-slate-700 text-white rounded border-2 border-slate-600 focus:border-amber-500 outline-none"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-slate-300 mb-2 font-semibold">Naturaleza (Gratuita) *</label>
+                          <input
+                            type="text"
+                            value={nature}
+                            onChange={(e) => setNature(e.target.value)}
+                            placeholder="Ej: Reptiliano, Resistente"
+                            className="w-full px-4 py-2 bg-slate-700 text-white rounded border-2 border-slate-600 focus:border-amber-500 outline-none"
+                          />
+                          <p className="text-slate-400 text-sm mt-1">La Naturaleza no cuenta en el cálculo de PH</p>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-slate-300 mb-2 font-semibold">Descripción (Opcional)</label>
+                          <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Describe brevemente esta herencia..."
+                            rows="3"
+                            className="w-full px-4 py-2 bg-slate-700 text-white rounded border-2 border-slate-600 focus:border-amber-500 outline-none resize-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-800 rounded-lg shadow-xl p-6 border-2 border-purple-600">
+                      <h2 className="text-2xl font-bold text-purple-400 mb-4">Biblioteca de Rasgos</h2>
+                      
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-xl font-bold text-green-400 mb-3">Ventajas</h3>
+                          
+                          {Object.entries(traits.ventajas).map(([category, items]) => (
+                            <div key={category} className="mb-4" id={'ventajas-' + category}>
+                              <h4 className="text-lg font-semibold text-green-300 mb-2 capitalize scroll-mt-6">
+                                {category} (+{category === 'mayor' ? '3' : category === 'medio' ? '2' : '1'} PH)
+                              </h4>
+                              <div className="grid gap-2">
+                                {items.map((trait, idx) => (
+                                  <button
+                                    key={idx}
+                                    onClick={() => addTrait(trait, 'ventaja', category)}
+                                    className="text-left p-3 bg-slate-700 hover:bg-green-900 rounded border border-green-600 transition-colors"
+                                  >
+                                    <div className="flex justify-between items-start">
+                                      <div className="flex-1">
+                                        <div className="font-semibold text-green-200">{trait.name}</div>
+                                        <div className="text-sm text-slate-400 mt-1">{trait.desc}</div>
+                                      </div>
+                                      <span className="text-green-400 ml-2">+</span>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div>
+                          <h3 className="text-xl font-bold text-red-400 mb-3">Desventajas</h3>
+                          
+                          {Object.entries(traits.desventajas).map(([category, items]) => (
+                            <div key={category} className="mb-4" id={'desventajas-' + category}>
+                              <h4 className="text-lg font-semibold text-red-300 mb-2 capitalize scroll-mt-6">
+                                {category} ({category === 'mayor' ? '-3' : category === 'medio' ? '-2' : '-1'} PH)
+                              </h4>
+                              <div className="grid gap-2">
+                                {items.map((trait, idx) => (
+                                  <button
+                                    key={idx}
+                                    onClick={() => addTrait(trait, 'desventaja', category)}
+                                    className="text-left p-3 bg-slate-700 hover:bg-red-900 rounded border border-red-600 transition-colors"
+                                  >
+                                    <div className="flex justify-between items-start">
+                                      <div className="flex-1">
+                                        <div className="font-semibold text-red-200">{trait.name}</div>
+                                        <div className="text-sm text-slate-400 mt-1">{trait.desc}</div>
+                                      </div>
+                                      <span className="text-red-400 ml-2">+</span>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div id="resumen" className="bg-slate-800 rounded-lg shadow-xl p-6 border-2 border-blue-600 sticky top-4 scroll-mt-6">
+                      <h2 className="text-2xl font-bold text-blue-400 mb-4">Tu Herencia</h2>
+                      
+                      <div className="mb-4 p-4 bg-slate-700 rounded">
+                        <div className="text-center">
+                          <div className="text-4xl font-bold mb-2" style={{color: total === 0 ? '#4ade80' : '#f87171'}}>
+                            {total} PH
+                          </div>
+                          <div className="text-slate-400 text-sm">Balance Total</div>
+                        </div>
+                        
+                        <div className="mt-4 flex justify-around text-center">
+                          <div>
+                            <div className="text-2xl font-bold text-white">{selectedTraits.length}</div>
+                            <div className="text-slate-400 text-xs">Rasgos</div>
+                          </div>
+                          <div>
+                            <div className="text-2xl font-bold text-green-400">
+                              {selectedTraits.filter(t => t.cost > 0).length}
+                            </div>
+                            <div className="text-slate-400 text-xs">Ventajas</div>
+                          </div>
+                          <div>
+                            <div className="text-2xl font-bold text-red-400">
+                              {selectedTraits.filter(t => t.cost < 0).length}
+                            </div>
+                            <div className="text-slate-400 text-xs">Desventajas</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {issues.length > 0 && (
+                        <div className="mb-4 p-3 bg-red-900 bg-opacity-30 border border-red-600 rounded">
+                          <div className="flex items-start gap-2 mb-2">
+                            <span className="text-red-400 mt-1">⚠</span>
+                            <div>
+                              <div className="font-semibold text-red-300">Herencia incompleta:</div>
+                              <ul className="text-sm text-red-200 mt-1 space-y-1">
+                                {issues.map((issue, i) => (
+                                  <li key={i}>• {issue}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {isValid() && (
+                        <div className="mb-4 p-3 bg-green-900 bg-opacity-30 border border-green-600 rounded">
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-400">✓</span>
+                            <div className="font-semibold text-green-300">Herencia válida</div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
+                        {selectedTraits.map(trait => (
+                          <div key={trait.id} className="p-3 bg-slate-700 rounded border-l-4" style={{borderColor: trait.cost > 0 ? '#4ade80' : '#f87171'}}>
+                            <div className="flex justify-between items-start mb-1">
+                              <div className="font-semibold text-white">{trait.name}</div>
+                              <button
+                                onClick={() => removeTrait(trait.id)}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                ×
+                              </button>
+                            </div>
+                            <div className="text-xs text-slate-400">{trait.desc}</div>
+                            <div className="text-xs mt-1" style={{color: trait.cost > 0 ? '#4ade80' : '#f87171'}}>
+                              {trait.cost > 0 ? '+' : ''}{trait.cost} PH
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="space-y-2">
+                        <button
+                          onClick={exportAsText}
+                          disabled={!isValid()}
+                          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded font-semibold transition-colors flex items-center justify-center gap-2"
+                        >
+                          <span>📄</span>
+                          Exportar como Texto
+                        </button>
+                        <button
+                          onClick={exportAsImage}
+                          disabled={!isValid()}
+                          className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded font-semibold transition-colors flex items-center justify-center gap-2"
+                        >
+                          <span>🖼️</span>
+                          Exportar como Imagen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HeritageCreator />);
+    </script>
+</body>
+</html>
