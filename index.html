@@ -22,13 +22,6 @@
           const [selectedTraits, setSelectedTraits] = useState([]);
           const [notification, setNotification] = useState(null);
 
-          const scrollToSection = (sectionId) => {
-            const element = document.getElementById(sectionId);
-            if (element) {
-              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          };
-
           const traits = {
             ventajas: {
               mayor: [
@@ -246,59 +239,6 @@
                   {notification}
                 </div>
               )}
-
-              <div className="hidden xl:block fixed left-4 top-1/2 transform -translate-y-1/2 bg-slate-800 rounded-lg shadow-xl p-4 border-2 border-slate-700 z-40">
-                <nav className="space-y-2">
-                  <button
-                    onClick={() => scrollToSection('info-basica')}
-                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-amber-400 rounded transition-colors text-sm"
-                  >
-                    📝 Información
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('ventajas-mayor')}
-                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-green-400 rounded transition-colors text-sm"
-                  >
-                    ⭐ Ventajas Mayor
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('ventajas-medio')}
-                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-green-400 rounded transition-colors text-sm"
-                  >
-                    ✨ Ventajas Medio
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('ventajas-menor')}
-                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-green-400 rounded transition-colors text-sm"
-                  >
-                    💫 Ventajas Menor
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('desventajas-menor')}
-                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-red-400 rounded transition-colors text-sm"
-                  >
-                   ⚠️ Desventajas Menor
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('desventajas-medio')}
-                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-red-400 rounded transition-colors text-sm"
-                  >
-                    ⛔ Desventajas Medio
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('desventajas-mayor')}
-                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-red-400 rounded transition-colors text-sm"
-                  >
-                    🚫 Desventajas Mayor
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('resumen')}
-                    className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-blue-400 rounded transition-colors text-sm"
-                  >
-                    📊 Resumen
-                  </button>
-                </nav>
-              </div>
               
               <div className="max-w-7xl mx-auto">
                 <header className="text-center mb-8 pt-6">
@@ -308,7 +248,7 @@
 
                 <div className="grid lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2 space-y-6">
-                    <div id="info-basica" className="bg-slate-800 rounded-lg shadow-xl p-6 border-2 border-amber-600 scroll-mt-6">
+                    <div className="bg-slate-800 rounded-lg shadow-xl p-6 border-2 border-amber-600">
                       <h2 className="text-2xl font-bold text-amber-400 mb-4">Información Básica</h2>
                       
                       <div className="space-y-4">
@@ -356,8 +296,8 @@
                           <h3 className="text-xl font-bold text-green-400 mb-3">Ventajas</h3>
                           
                           {Object.entries(traits.ventajas).map(([category, items]) => (
-                            <div key={category} className="mb-4" id={'ventajas-' + category}>
-                              <h4 className="text-lg font-semibold text-green-300 mb-2 capitalize scroll-mt-6">
+                            <div key={category} className="mb-4">
+                              <h4 className="text-lg font-semibold text-green-300 mb-2 capitalize">
                                 {category} (+{category === 'mayor' ? '3' : category === 'medio' ? '2' : '1'} PH)
                               </h4>
                               <div className="grid gap-2">
@@ -385,8 +325,8 @@
                           <h3 className="text-xl font-bold text-red-400 mb-3">Desventajas</h3>
                           
                           {Object.entries(traits.desventajas).map(([category, items]) => (
-                            <div key={category} className="mb-4" id={'desventajas-' + category}>
-                              <h4 className="text-lg font-semibold text-red-300 mb-2 capitalize scroll-mt-6">
+                            <div key={category} className="mb-4">
+                              <h4 className="text-lg font-semibold text-red-300 mb-2 capitalize">
                                 {category} ({category === 'mayor' ? '-3' : category === 'medio' ? '-2' : '-1'} PH)
                               </h4>
                               <div className="grid gap-2">
@@ -414,7 +354,7 @@
                   </div>
 
                   <div className="space-y-6">
-                    <div id="resumen" className="bg-slate-800 rounded-lg shadow-xl p-6 border-2 border-blue-600 sticky top-4 scroll-mt-6">
+                    <div className="bg-slate-800 rounded-lg shadow-xl p-6 border-2 border-blue-600 sticky top-4">
                       <h2 className="text-2xl font-bold text-blue-400 mb-4">Tu Herencia</h2>
                       
                       <div className="mb-4 p-4 bg-slate-700 rounded">
