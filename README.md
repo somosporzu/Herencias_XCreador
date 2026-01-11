@@ -4,7 +4,7 @@ Herramienta web para crear herencias jugables de manera equilibrada usando el si
 
 ## 🎮 Usar la aplicación
 
-Visita: https://TU-USUARIO.github.io/creador-herencias/
+Visita: (https://somosporzu.github.io/Herencias_XCreador/)
 
 ## ✨ Características
 
