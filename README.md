@@ -1,2 +1,14 @@
-# Herencias_XCreador
-un creador de herencias para sistema PAPA
+# Creador de Herencias
+
+Herramienta web para crear herencias jugables de manera equilibrada usando el sistema modular de puntos (PH).
+
+## 🎮 Usar la aplicación
+
+Visita: https://TU-USUARIO.github.io/creador-herencias/
+
+## ✨ Características
+
+- Sistema de puntos equilibrado (0 PH)
+- Biblioteca completa de rasgos
+- Exportación a texto e imagen
+- Validación en tiempo real
