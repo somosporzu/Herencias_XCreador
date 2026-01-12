@@ -1,463 +1,443 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creador de Herencias - Sistema de Puntos</title>
-    <meta name="description" content="Herramienta web para crear herencias jugables equilibradas usando el sistema modular de puntos (PH)">
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-    <div id="root"></div>
-    <script type="text/babel">
-        const { useState } = React;
+import { useState } from 'react';
 
-        const HeritageCreator = () => {
-          const [name, setName] = useState('');
-          const [nature, setNature] = useState('');
-          const [description, setDescription] = useState('');
-          const [selectedTraits, setSelectedTraits] = useState([]);
-          const [notification, setNotification] = useState(null);
+export default function HeritageCreator() {
+  const [name, setName] = useState('');
+  const [nature, setNature] = useState('');
+  const [description, setDescription] = useState('');
+  const [selectedTraits, setSelectedTraits] = useState([]);
+  const [notification, setNotification] = useState(null);
+  const [expanded, setExpanded] = useState({});
 
-          const traits = {
-            ventajas: {
-              mayor: [
-                { name: 'Aliento Elemental', cost: 3, desc: '1/día, infligen 1d6 de daño elemental en área cónica de 3m' },
-                { name: 'Brazos Adicionales', cost: 3, desc: 'Dos brazos extra. Pueden sostener objetos pero no atacar' },
-                { name: 'Corazón Secundario', cost: 3, desc: 'Primera vez que caen a 0 de Resistencia, quedan a 1' },
-                { name: 'Cuerpo Elemental', cost: 3, desc: 'Arma natural potente y Resistencia a un tipo de daño' },
-                { name: 'Glándulas de Seda', cost: 3, desc: 'Crean cuerdas (10m/día) o redes pequeñas' },
-                { name: 'Inmunidad a Enfermedades', cost: 3, desc: 'Inmunes a todas las enfermedades no mágicas' },
-                { name: 'Mente Telepática', cost: 3, desc: 'Comunicación mental con criaturas a 10m' },
-                { name: 'No Necesitan Dormir', cost: 3, desc: 'Solo 4 horas de meditación para descanso largo' },
-                { name: 'Piel Camaleónica', cost: 3, desc: 'Ventaja en sigilo para esconderse' },
-                { name: 'Piel de Piedra', cost: 3, desc: 'Ignoran 1 punto de daño de cualquier fuente' },
-                { name: 'Regeneración Leve', cost: 3, desc: 'Recuperan 3 de Resistencia al final de cada combate' },
-                { name: 'Sentido Ciego', cost: 3, desc: 'Pueden ver sin ojos en 5m. Inmunes a ceguera' },
-                { name: 'Vuelo Limitado', cost: 3, desc: 'Planean o vuelan distancias cortas' }
-              ],
-              medio: [
-                { name: 'Acróbatas Natos', cost: 2, desc: 'Ventaja en acrobacias y equilibrio' },
-                { name: 'Adherencia Mural', cost: 2, desc: 'Trepan superficies verticales sin tiradas' },
-                { name: 'Arma Natural Potente', cost: 2, desc: 'Garras/cuernos que infligen 1d6 daño' },
-                { name: 'Defensa Natural', cost: 2, desc: '+1 estable a Defensa' },
-                { name: 'Empatía Animal', cost: 2, desc: 'Comunicación simple con animales' },
-                { name: 'Memoria Prodigiosa', cost: 2, desc: 'Ventaja en tiradas para recordar' },
-                { name: 'Resistencia Aumentada', cost: 2, desc: '+5 a Resistencia máxima' },
-                { name: 'Visión en la Oscuridad', cost: 2, desc: 'Ven en oscuridad como penumbra' }
-              ],
-              menor: [
-                { name: 'Armas Naturales Débiles', cost: 1, desc: 'Garras/colmillos que infligen 1d6-3 daño' },
-                { name: 'Colas Prensiles', cost: 1, desc: 'Cola sostiene objetos pequeños' },
-                { name: 'Equilibrio Perfecto', cost: 1, desc: 'Ventaja para evitar caerse' },
-                { name: 'Fisiología Anfibia', cost: 1, desc: 'Respiran en aire y agua' },
-                { name: 'Orientación Natural', cost: 1, desc: 'Ventaja para no perderse' },
-                { name: 'Resistencia Climática', cost: 1, desc: 'Resisten mejor clima específico' }
-              ]
-            },
-            desventajas: {
-              menor: [
-                { name: 'Alergia Común', cost: -1, desc: 'Alérgico a algo común' },
-                { name: 'Fobia Común', cost: -1, desc: 'Fobia a algo común' },
-                { name: 'Huesos Frágiles', cost: -1, desc: 'Doble daño de caídas' },
-                { name: 'Mala Memoria', cost: -1, desc: 'Desventaja para recordar' },
-                { name: 'Olor Distintivo', cost: -1, desc: 'Desventaja en sigilo vs olfato' },
-                { name: 'Sangre Fría', cost: -1, desc: '-1 a tiradas en frío' }
-              ],
-              medio: [
-                { name: 'Atributo Reducido', cost: -2, desc: '-1 permanente a Atributo' },
-                { name: 'Dieta Especializada', cost: -2, desc: 'Solo comen comida específica' },
-                { name: 'Físico Inusual', cost: -2, desc: 'Equipo cuesta x2 para adaptar' },
-                { name: 'Resistencia Reducida', cost: -2, desc: '-2 a Resistencia máxima' },
-                { name: 'Sensible a Luz Solar', cost: -2, desc: 'Desventaja bajo luz solar' }
-              ],
-              mayor: [
-                { name: 'Ceguera', cost: -3, desc: 'No pueden ver' },
-                { name: 'Debilidad Elemental Mayor', cost: -3, desc: 'Vulnerables a elemento' },
-                { name: 'Dependencia de Agua', cost: -3, desc: 'Deben sumergirse 1h/día' },
-                { name: 'Sin Voz', cost: -3, desc: 'No pueden hablar' }
-              ]
-            }
-          };
+  const toggleSection = (key) => {
+    setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
-          const addTrait = (trait, type, category) => {
-            setSelectedTraits([...selectedTraits, { ...trait, type, category, id: Date.now() }]);
-          };
+  const traits = {
+    ventajas: {
+      mayor: [
+        { name: 'Aliento Elemental', cost: 3, desc: '1/día, infligen 1d6 de daño elemental en un área cónica de 3 metros (Salvación de Destreza ND 12 para mitad de daño)' },
+        { name: 'Brazos Adicionales', cost: 3, desc: 'Tienen dos brazos extra más pequeños. Pueden sostener objetos pero no atacar con ellos' },
+        { name: 'Corazón Secundario', cost: 3, desc: 'Tienen redundancia orgánica. La primera vez que caen a 0 de Resistencia, se quedan a 1' },
+        { name: 'Cuerpo Elemental', cost: 3, desc: 'Parte de su cuerpo es de un elemento (ej: brazo de piedra), otorgándoles un arma natural potente y Resistencia a un tipo de daño' },
+        { name: 'Glándulas de Seda', cost: 3, desc: 'Pueden secretar seda resistente para crear cuerdas (10 m/día) o redes pequeñas' },
+        { name: 'Inmunidad a Enfermedades', cost: 3, desc: 'Son inmunes a todas las enfermedades no mágicas' },
+        { name: 'Mente Telepática', cost: 3, desc: 'Pueden comunicarse mentalmente con criaturas a 10 metros' },
+        { name: 'No Necesitan Dormir', cost: 3, desc: 'Solo necesitan 4 horas de meditación o trance para obtener los beneficios de un descanso largo' },
+        { name: 'Piel Camaleónica', cost: 3, desc: 'Tienen ventaja en todas las tiradas de sigilo para esconderse' },
+        { name: 'Piel de Piedra', cost: 3, desc: 'Ignoran 1 punto de daño de cualquier fuente' },
+        { name: 'Regeneración Leve', cost: 3, desc: 'Recuperan 3 de Resistencia al final de cada combate' },
+        { name: 'Regeneración de Miembros', cost: 3, desc: 'Sus cuerpos pueden regenerar extremidades perdidas completamente tras 1d6 días de descanso' },
+        { name: 'Sentido Ciego', cost: 3, desc: 'Pueden "ver" sin usar los ojos en un radio de 5 m. Son inmunes a la ceguera' },
+        { name: 'Toque Paralizante', cost: 3, desc: '1/día, su ataque desarmado puede paralizar al objetivo si falla una Salvación de Constitución (ND 12)' },
+        { name: 'Toque Vampírico Menor', cost: 3, desc: '1/día, al infligir daño con un ataque cuerpo a cuerpo, pueden recuperar una cantidad de Resistencia igual a la mitad del daño infligido' },
+        { name: 'Visión en la Oscuridad Superior', cost: 3, desc: 'Pueden ver en la oscuridad total como si fuera de día, percibiendo todos los colores' },
+        { name: 'Vuelo Limitado', cost: 3, desc: 'Pueden planear o volar cortas distancias (su movimiento de vuelo es igual a su velocidad terrestre, pero caen si terminan su turno en el aire)' }
+      ],
+      medio: [
+        { name: 'Acróbatas Natos', cost: 2, desc: 'Tienen ventaja en las tiradas de acrobacias y equilibrio' },
+        { name: 'Adherencia Mural', cost: 2, desc: 'Pueden trepar superficies verticales difíciles, incluso techos, sin necesidad de tiradas' },
+        { name: 'Afinidad con una Fuerza', cost: 2, desc: 'El coste en PX para comprar técnicas de una Fuerza específica se reduce en un 10%' },
+        { name: 'Afinidad Elemental Menor', cost: 2, desc: 'Pueden realizar pequeños trucos con un elemento (encender una vela, enfriar una bebida)' },
+        { name: 'Arma Natural Potente', cost: 2, desc: 'Garras o cuernos que infligen 1d6 de daño' },
+        { name: 'Caparazón Dorsal', cost: 2, desc: 'Una placa dura protege sus espaldas. Los ataques por la retaguardia no tienen ventaja contra ellos' },
+        { name: 'Defensa Natural', cost: 2, desc: '+1 estable a la Defensa' },
+        { name: 'Ecolocalización', cost: 2, desc: 'Pueden emitir sonidos inaudibles para "ver" su entorno en un radio de 10 m. Funciona en oscuridad total pero no en silencio mágico' },
+        { name: 'Empatía Animal', cost: 2, desc: 'Pueden comunicarse de forma simple y empática con los animales' },
+        { name: 'Espinas Retráctiles', cost: 2, desc: 'Cuerpos cubiertos de espinas ocultas. Quien intente agarrarlos sufre 1d6-2 de daño automáticamente' },
+        { name: 'Estómago Carroñero', cost: 2, desc: 'Su biología les permite comer carne podrida o cruda sin enfermar, y les nutre como comida fresca' },
+        { name: 'Exoesqueletos', cost: 2, desc: 'Sus cuerpos están cubiertos de placas quitinosas. Ganan +2 a la Defensa pero no pueden llevar armadura' },
+        { name: 'Feromonas', cost: 2, desc: 'Tienen ventaja en las tiradas sociales para persuadir o atraer a otros' },
+        { name: 'Fotosíntesis', cost: 2, desc: 'Si pasan al menos 4 horas bajo la luz solar, no necesitan comer ese día' },
+        { name: 'Garras Retráctiles', cost: 2, desc: 'Poseen garras retráctiles que infligen 1d6-3 de daño y que pueden ocultar a voluntad' },
+        { name: 'Membranas Interdigitales', cost: 2, desc: 'Nadan a su velocidad normal de tierra y tienen ventaja en agarres bajo el agua' },
+        { name: 'Memoria Prodigiosa', cost: 2, desc: 'Recuerdan con cierta facilidad todo lo que ven o leen. Ventaja en tiradas que impliquen recordar' },
+        { name: 'Metabolismo Eficiente', cost: 2, desc: 'Solo necesitan la mitad de comida y agua para evitar la fatiga' },
+        { name: 'Miembros Elásticos', cost: 2, desc: 'Pueden estirar sus brazos hasta el doble de su longitud, aumentando su alcance' },
+        { name: 'Movimiento Especial', cost: 2, desc: 'Ganan una velocidad de trepar o nadar igual a su velocidad terrestre' },
+        { name: 'Naturaleza Adicional', cost: 2, desc: 'Ganan una Naturaleza extra a su elección' },
+        { name: 'Paso Ligero Avanzado', cost: 2, desc: 'Pueden moverse sobre superficies como nieve profunda o barro sin penalización' },
+        { name: 'Resistencia a Venenos', cost: 2, desc: 'Tienen ventaja en las Tiradas de Salvación contra venenos' },
+        { name: 'Resistencia Aumentada', cost: 2, desc: '+5 a su Resistencia máxima' },
+        { name: 'Resistencia Mágica', cost: 2, desc: 'Tienen ventaja en las salvaciones contra los efectos de Técnicas' },
+        { name: 'Saliva Corrosiva', cost: 2, desc: 'Pueden escupir ácido (1d6 de daño) a corta distancia como acción' },
+        { name: 'Sentidos Agudos', cost: 2, desc: 'Ventaja en todas las tiradas de un sentido (oído, olfato)' },
+        { name: 'Visión en la Oscuridad', cost: 2, desc: 'Pueden ver en la oscuridad total como si hubiera penumbra, pero en blanco y negro' }
+      ],
+      menor: [
+        { name: 'Armas Naturales Débiles', cost: 1, desc: 'Garras o colmillos que infligen 1d6-3 de daño' },
+        { name: 'Bioluminiscencia', cost: 1, desc: 'Pueden emitir luz tenue desde sus cuerpos a voluntad. Tienen desventaja en sigilo en la oscuridad' },
+        { name: 'Bolsas en la Mejilla', cost: 1, desc: 'Poseen espacio biológico expansible en la boca para guardar objetos pequeños ocultos' },
+        { name: 'Bono de Habilidad Menor', cost: 1, desc: '+1 a una tirada muy específica (ej: trepar, nadar)' },
+        { name: 'Colas Prensiles', cost: 1, desc: 'Pueden usar sus colas para sostener objetos pequeños (no armas)' },
+        { name: 'Duros de Cabeza', cost: 1, desc: '+1 a las tiradas para resistir la intimidación' },
+        { name: 'Equilibrio Perfecto', cost: 1, desc: 'Tienen ventaja en las tiradas para evitar caerse o ser derribados' },
+        { name: 'Estómagos de Hierro', cost: 1, desc: 'Tienen ventaja en las salvaciones contra enfermedades por comida' },
+        { name: 'Familiaridad Animal', cost: 1, desc: '+1 a las tiradas para interactuar con un tipo de animal (lobos, aves, etc.)' },
+        { name: 'Fisiología Anfibia', cost: 1, desc: 'Pueden respirar tanto en aire como en agua' },
+        { name: 'Manos Hábiles', cost: 1, desc: '+1 a las tiradas de artesanía fina (joyería, relojería, etc.)' },
+        { name: 'Orientación Natural', cost: 1, desc: 'Tienen ventaja en las tiradas para no perderse en la naturaleza' },
+        { name: 'Párpados Nictitantes', cost: 1, desc: 'Membranas transparentes que protegen sus ojos. Son inmunes a la ceguera por arena o polvo' },
+        { name: 'Pelo Aislante', cost: 1, desc: 'Su pelaje les otorga ventaja en salvaciones naturales contra el frío extremo' },
+        { name: 'Percepción Aguda', cost: 1, desc: '+1 a las tiradas para notar detalles sutiles' },
+        { name: 'Piel de Piedra Menor', cost: 1, desc: 'Ignoran 1 punto de daño de un tipo específico (ej: Contundente, Cortante, Fuego)' },
+        { name: 'Pies Ligeros', cost: 1, desc: 'Ignoran el terreno difícil causado por vegetación o suelo irregular' },
+        { name: 'Pulmones Grandes', cost: 1, desc: 'Pueden aguantar la respiración el doble de tiempo' },
+        { name: 'Resistencia al Dolor', cost: 1, desc: 'Obtienen ventaja en las tiradas relacionadas con soportar el dolor' },
+        { name: 'Resistencia Climática', cost: 1, desc: 'Resisten mejor un clima específico (frío o calor)' },
+        { name: 'Voz Mímica', cost: 1, desc: 'Sus siringes les permiten imitar sonidos de animales simples con gran precisión' },
+        { name: 'Voz Resonante', cost: 1, desc: 'Tienen ventaja en tiradas para hacerse oír a distancia o en multitudes' }
+      ]
+    },
+    desventajas: {
+      menor: [
+        { name: 'Alergia Común', cost: -1, desc: 'La herencia es alérgico a algo común (polen, polvo, un tipo de animal)' },
+        { name: 'Condicionado', cost: -1, desc: 'Una de sus ventajas solo funciona en una situación o momento específico' },
+        { name: 'Curiosidad Mórbida', cost: -1, desc: 'Deben superar una tirada de Aura (ND 9) para no investigar algo obviamente peligroso' },
+        { name: 'Dieta Especial', cost: -1, desc: 'Al menos una vez cada tres días deben alimentarse de un tipo muy específico de comida' },
+        { name: 'Dientes de Crecimiento', cost: -1, desc: 'Sus dientes nunca dejan de crecer. Deben roer objetos duros diariamente o sufrir dolor' },
+        { name: 'Fobia Común', cost: -1, desc: 'Tienen una fobia a algo común (insectos, alturas, espacios cerrados)' },
+        { name: 'Huesos Frágiles', cost: -1, desc: 'Reciben el doble de daño de las caídas' },
+        { name: 'Mala Memoria', cost: -1, desc: 'Tienen desventaja para recordar detalles, nombres o hechos históricos' },
+        { name: 'Miedo Instintivo', cost: -1, desc: 'Deben superar una tirada de Aura para no asustarse ante un animal o fenómeno común' },
+        { name: 'Muda de Piel', cost: -1, desc: 'Periódicamente pierden su capa externa, quedando vulnerable (-1 Defensa) por un día' },
+        { name: 'Necesidad Física Leve', cost: -1, desc: 'Requieren más agua, comida o descanso de lo normal' },
+        { name: 'Olor Distintivo', cost: -1, desc: 'Tienen desventaja en sigilo contra criaturas con buen olfato' },
+        { name: 'Piel Sensible', cost: -1, desc: 'Reciben +1 de daño de Fuego o Hielo' },
+        { name: 'Sabor Agradable', cost: -1, desc: 'Las bestias prefieren atacarlos antes que a otros' },
+        { name: 'Sangre Fría', cost: -1, desc: 'Sufren un -1 a todas las tiradas en climas fríos y no recuperan fatiga mientras estén en un clima frío' },
+        { name: 'Sin Sentido de la Orientación', cost: -1, desc: 'Tienen desventaja en las tiradas para no perderse' },
+        { name: 'Sudoración Excesiva', cost: -1, desc: 'Su cuerpo produce exceso de fluidos. Desventaja en agarres y social' },
+        { name: 'Sueño Profundo', cost: -1, desc: 'Les cuesta despertar. Desventaja en tiradas para despertarse ante ruidos' },
+        { name: 'Tics Nerviosos', cost: -1, desc: 'Movimientos involuntarios les dan desventaja en Sigilo al estar quietos' },
+        { name: 'Torpeza Específica', cost: -1, desc: '-1 a todas las tiradas de una habilidad específica' },
+        { name: 'Voz Débil', cost: -1, desc: 'Tienen desventaja en tiradas para hacerse oír a distancia o en multitudes' },
+        { name: 'Vulnerabilidad Climática', cost: -1, desc: 'Fatiga más rápida en un clima específico (calor o frío)' }
+      ],
+      medio: [
+        { name: 'Atributo Reducido', cost: -2, desc: '-1 permanente a un Atributo primario al inicio' },
+        { name: 'Conexión Empática', cost: -2, desc: 'Sienten el dolor físico de las criaturas a su alrededor' },
+        { name: 'Dieta Especializada', cost: -2, desc: 'Solo pueden alimentarse de un tipo muy específico de comida' },
+        { name: 'Físico Inusual', cost: -2, desc: 'No pueden usar equipo estándar sin adaptarlo (coste x2)' },
+        { name: 'Fragilidad Física', cost: -2, desc: 'Reciben +1 de daño de un tipo específico (ej: Contundente)' },
+        { name: 'Limitación Mental', cost: -2, desc: 'No pueden mentir, entender metáforas o usar cierto equipo' },
+        { name: 'Maldición Menor', cost: -2, desc: 'Sufren mala suerte en un área específica. Sufren desventaja en dicha situaciones' },
+        { name: 'Metabolismo Exigente', cost: -2, desc: 'Requieren el doble de alimento y agua para no sufrir Fatiga' },
+        { name: 'Piel Absorbente', cost: -2, desc: 'Sus poros absorben sustancias tóxicas al tocarlas. Tienen desventaja en salvaciones contra veneno' },
+        { name: 'Resistencia Reducida', cost: -2, desc: '-2 a su Resistencia máxima inicial' },
+        { name: 'Respiración Ruidosa', cost: -2, desc: 'Su respiración es audible. Penalizador de -2 a Sigilo' },
+        { name: 'Rigidez Matutina', cost: -2, desc: '-2 a Destreza durante la primera hora tras despertar' },
+        { name: 'Sangre Dulce', cost: -2, desc: 'En combate es más probable que sus enemigos les ataquen por encima de sus aliados' },
+        { name: 'Sensible a la Luz Solar', cost: -2, desc: 'Tienen desventaja en acciones bajo luz solar directa' },
+        { name: 'Sensible a la Luz Lunar', cost: -2, desc: 'Tienen desventaja en acciones bajo luz Lunar directa' },
+        { name: 'Sin Sentido del Olfato', cost: -2, desc: 'Incapaz de percibir olores (desventaja en percepción olfativa)' },
+        { name: 'Sin Sombra', cost: -2, desc: 'No proyectan sombra, lo que genera desconfianza y miedo supersticioso' },
+        { name: 'Visión de Movimiento', cost: -2, desc: 'Desventaja para percibir objetos o criaturas totalmente inmóviles' }
+      ],
+      mayor: [
+        { name: 'Anatomía Rígida', cost: -3, desc: 'No pueden doblar su torso. Desventaja en acrobacias y cuesta levantarse' },
+        { name: 'Atrofia de Brazos', cost: -3, desc: 'Brazos débiles. -2 a tiradas de Fuerza y daño cuerpo a cuerpo' },
+        { name: 'Ceguera', cost: -3, desc: 'No pueden ver. Fallan automáticamente cualquier tirada visual' },
+        { name: 'Ceguera Diurna', cost: -3, desc: 'Quedan cegados bajo luz solar brillante o fuentes intensas' },
+        { name: 'Debilidad Elemental Mayor', cost: -3, desc: 'Son Vulnerables (doble daño) a un tipo de daño elemental' },
+        { name: 'Defecto Físico Serio', cost: -3, desc: 'Empiezan con una desventaja mecánica permanente' },
+        { name: 'Dependencia de Agua', cost: -3, desc: 'Deben sumergirse 1 hora al día o no recuperan PH' },
+        { name: 'No Pueden Sanar Naturalmente', cost: -3, desc: 'La recuperación por descanso no les afecta. Solo sanan por Técnicas' },
+        { name: 'Nocturnos Obligados', cost: -3, desc: 'La luz solar directa les causa dolor y desventaja' },
+        { name: 'Costumbre', cost: -3, desc: 'Deben cumplir una condición especial regular o sufrir consecuencias' },
+        { name: 'Piel Fotosensible', cost: -3, desc: 'Reciben 1 punto de daño por turno bajo luz solar directa' },
+        { name: 'Sin Voz', cost: -3, desc: 'No pueden hablar' },
+        { name: 'Sistema Inmune Nulo', cost: -3, desc: 'Desventaja contra enfermedades/venenos y doble daño de veneno' },
+        { name: 'Vulnerables a un Material Común', cost: -3, desc: 'Doble daño de armas hechas de un material común (hierro, plata, etc.)' }
+      ]
+    }
+  };
 
-          const removeTrait = (id) => {
-            setSelectedTraits(selectedTraits.filter(t => t.id !== id));
-          };
+  const addTrait = (trait) => {
+    setSelectedTraits([...selectedTraits, { ...trait, id: Date.now() }]);
+  };
 
-          const calculateTotal = () => {
-            return selectedTraits.reduce((sum, trait) => sum + trait.cost, 0);
-          };
+  const removeTrait = (id) => {
+    setSelectedTraits(selectedTraits.filter(t => t.id !== id));
+  };
 
-          const isValid = () => {
-            const total = calculateTotal();
-            const traitCount = selectedTraits.length;
-            const hasDisadvantage = selectedTraits.some(t => t.cost < 0);
-            
-            return total === 0 && traitCount >= 2 && traitCount <= 7 && hasDisadvantage && name.trim() !== '' && nature.trim() !== '';
-          };
+  const calculateTotal = () => {
+    return selectedTraits.reduce((sum, trait) => sum + trait.cost, 0);
+  };
 
-          const getValidationStatus = () => {
-            const total = calculateTotal();
-            const traitCount = selectedTraits.length;
-            const hasDisadvantage = selectedTraits.some(t => t.cost < 0);
-            
-            const issues = [];
-            if (total !== 0) issues.push('Balance: ' + total + ' PH (debe ser 0)');
-            if (traitCount < 2) issues.push('Rasgos: ' + traitCount + '/7 (mínimo 2)');
-            if (traitCount > 7) issues.push('Rasgos: ' + traitCount + '/7 (máximo 7)');
-            if (!hasDisadvantage) issues.push('Falta desventaja');
-            if (!name.trim()) issues.push('Falta nombre');
-            if (!nature.trim()) issues.push('Falta naturaleza');
-            
-            return issues;
-          };
+  const isValid = () => {
+    const total = calculateTotal();
+    const traitCount = selectedTraits.length;
+    const hasDisadvantage = selectedTraits.some(t => t.cost < 0);
+    return total === 0 && traitCount >= 2 && traitCount <= 7 && hasDisadvantage && name.trim() !== '' && nature.trim() !== '';
+  };
 
-          const exportAsText = () => {
-            const total = calculateTotal();
-            let text = '═══════════════════════════════════════\n';
-            text += '   HERENCIA: ' + name.toUpperCase() + '\n';
-            text += '═══════════════════════════════════════\n\n';
-            
-            if (description) {
-              text += description + '\n\n';
-            }
-            
-            text += 'NATURALEZA: ' + nature + '\n\n';
-            text += '───────────────────────────────────────\n';
-            text += 'RASGOS:\n';
-            text += '───────────────────────────────────────\n\n';
-            
-            selectedTraits.forEach(trait => {
-              const sign = trait.cost > 0 ? '+' : '';
-              text += '◆ ' + trait.name + ' (' + sign + trait.cost + ' PH)\n';
-              text += '  ' + trait.desc + '\n\n';
-            });
-            
-            text += '───────────────────────────────────────\n';
-            text += 'BALANCE TOTAL: ' + total + ' PH\n';
-            text += 'NÚMERO DE RASGOS: ' + selectedTraits.length + '\n';
-            text += '═══════════════════════════════════════\n';
-            
-            const blob = new Blob([text], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = name.replace(/\s+/g, '_') + '_herencia.txt';
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            setNotification('✅ Archivo de texto descargado exitosamente');
-            setTimeout(() => setNotification(null), 3000);
-          };
+  const getValidationStatus = () => {
+    const total = calculateTotal();
+    const traitCount = selectedTraits.length;
+    const hasDisadvantage = selectedTraits.some(t => t.cost < 0);
+    
+    const issues = [];
+    if (total !== 0) issues.push(`Balance: ${total} PH (debe ser 0)`);
+    if (traitCount < 2) issues.push(`Rasgos: ${traitCount}/7 (mínimo 2)`);
+    if (traitCount > 7) issues.push(`Rasgos: ${traitCount}/7 (máximo 7)`);
+    if (!hasDisadvantage) issues.push('Falta desventaja');
+    if (!name.trim()) issues.push('Falta nombre');
+    if (!nature.trim()) issues.push('Falta naturaleza');
+    
+    return issues;
+  };
 
-          const exportAsImage = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = 800;
-            canvas.height = 600 + selectedTraits.length * 80;
-            
-            ctx.fillStyle = '#1a1a2e';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.strokeStyle = '#d4af37';
-            ctx.lineWidth = 8;
-            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-            
-            ctx.fillStyle = '#d4af37';
-            ctx.font = 'bold 48px serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(name.toUpperCase(), canvas.width / 2, 90);
-            
-            let yPos = 160;
-            
-            ctx.fillStyle = '#8b4513';
-            ctx.fillRect(60, yPos, canvas.width - 120, 50);
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 24px serif';
-            ctx.textAlign = 'left';
-            ctx.fillText('Naturaleza: ' + nature, 80, yPos + 33);
-            yPos += 80;
-            
-            ctx.fillStyle = '#d4af37';
-            ctx.font = 'bold 20px serif';
-            ctx.fillText('RASGOS', 60, yPos);
-            yPos += 35;
-            
-            selectedTraits.forEach(trait => {
-              const bgColor = trait.cost > 0 ? '#1e4d2b' : '#4d1e1e';
-              ctx.fillStyle = bgColor;
-              ctx.fillRect(60, yPos, canvas.width - 120, 70);
+  const total = calculateTotal();
+  const issues = getValidationStatus();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-green-50 to-amber-100 p-4">
+      {notification && (
+        <div className="fixed top-4 right-4 bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+          {notification}
+        </div>
+      )}
+      
+      <div className="max-w-7xl mx-auto">
+        <header className="text-center mb-8 pt-6">
+          <h1 className="text-5xl font-bold text-green-800 mb-2">Creador de Herencias</h1>
+          <p className="text-green-700 text-lg">Sistema modular de puntos (PH)</p>
+        </header>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white rounded-lg shadow-xl p-6 border-2 border-green-600">
+              <h2 className="text-2xl font-bold text-green-800 mb-4">Información Básica</h2>
               
-              ctx.fillStyle = trait.cost > 0 ? '#4ade80' : '#f87171';
-              ctx.font = 'bold 18px sans-serif';
-              ctx.textAlign = 'left';
-              const sign = trait.cost > 0 ? '+' : '';
-              ctx.fillText(trait.name + ' (' + sign + trait.cost + ' PH)', 80, yPos + 25);
-              
-              ctx.fillStyle = '#e0e0e0';
-              ctx.font = '14px sans-serif';
-              ctx.fillText(trait.desc, 80, yPos + 50);
-              
-              yPos += 80;
-            });
-            
-            yPos += 20;
-            const total = calculateTotal();
-            ctx.fillStyle = total === 0 ? '#4ade80' : '#f87171';
-            ctx.font = 'bold 28px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Balance Total: ' + total + ' PH', canvas.width / 2, yPos);
-            
-            canvas.toBlob(blob => {
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = name.replace(/\s+/g, '_') + '_herencia.png';
-              a.click();
-              URL.revokeObjectURL(url);
-              
-              setNotification('✅ Imagen descargada exitosamente');
-              setTimeout(() => setNotification(null), 3000);
-            });
-          };
-
-          const total = calculateTotal();
-          const issues = getValidationStatus();
-
-          return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
-              {notification && (
-                <div className="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
-                  {notification}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-green-800 mb-2 font-semibold">Nombre de la Herencia *</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ej: Draconidos"
+                    className="w-full px-4 py-2 bg-amber-50 text-green-900 rounded border-2 border-green-400 focus:border-green-600 outline-none"
+                  />
                 </div>
-              )}
-              
-              <div className="max-w-7xl mx-auto">
-                <header className="text-center mb-8 pt-6">
-                  <h1 className="text-5xl font-bold text-amber-400 mb-2">Creador de Herencias</h1>
-                  <p className="text-slate-300 text-lg">Sistema modular de puntos (PH)</p>
-                </header>
-
-                <div className="grid lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-slate-800 rounded-lg shadow-xl p-6 border-2 border-amber-600">
-                      <h2 className="text-2xl font-bold text-amber-400 mb-4">Información Básica</h2>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-slate-300 mb-2 font-semibold">Nombre de la Herencia *</label>
-                          <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Ej: Draconidos"
-                            className="w-full px-4 py-2 bg-slate-700 text-white rounded border-2 border-slate-600 focus:border-amber-500 outline-none"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-slate-300 mb-2 font-semibold">Naturaleza (Gratuita) *</label>
-                          <input
-                            type="text"
-                            value={nature}
-                            onChange={(e) => setNature(e.target.value)}
-                            placeholder="Ej: Reptiliano, Resistente"
-                            className="w-full px-4 py-2 bg-slate-700 text-white rounded border-2 border-slate-600 focus:border-amber-500 outline-none"
-                          />
-                          <p className="text-slate-400 text-sm mt-1">La Naturaleza no cuenta en el cálculo de PH</p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-slate-300 mb-2 font-semibold">Descripción (Opcional)</label>
-                          <textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Describe brevemente esta herencia..."
-                            rows="3"
-                            className="w-full px-4 py-2 bg-slate-700 text-white rounded border-2 border-slate-600 focus:border-amber-500 outline-none resize-none"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-800 rounded-lg shadow-xl p-6 border-2 border-purple-600">
-                      <h2 className="text-2xl font-bold text-purple-400 mb-4">Biblioteca de Rasgos</h2>
-                      
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-xl font-bold text-green-400 mb-3">Ventajas</h3>
-                          
-                          {Object.entries(traits.ventajas).map(([category, items]) => (
-                            <div key={category} className="mb-4">
-                              <h4 className="text-lg font-semibold text-green-300 mb-2 capitalize">
-                                {category} (+{category === 'mayor' ? '3' : category === 'medio' ? '2' : '1'} PH)
-                              </h4>
-                              <div className="grid gap-2">
-                                {items.map((trait, idx) => (
-                                  <button
-                                    key={idx}
-                                    onClick={() => addTrait(trait, 'ventaja', category)}
-                                    className="text-left p-3 bg-slate-700 hover:bg-green-900 rounded border border-green-600 transition-colors"
-                                  >
-                                    <div className="flex justify-between items-start">
-                                      <div className="flex-1">
-                                        <div className="font-semibold text-green-200">{trait.name}</div>
-                                        <div className="text-sm text-slate-400 mt-1">{trait.desc}</div>
-                                      </div>
-                                      <span className="text-green-400 ml-2">+</span>
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div>
-                          <h3 className="text-xl font-bold text-red-400 mb-3">Desventajas</h3>
-                          
-                          {Object.entries(traits.desventajas).map(([category, items]) => (
-                            <div key={category} className="mb-4">
-                              <h4 className="text-lg font-semibold text-red-300 mb-2 capitalize">
-                                {category} ({category === 'mayor' ? '-3' : category === 'medio' ? '-2' : '-1'} PH)
-                              </h4>
-                              <div className="grid gap-2">
-                                {items.map((trait, idx) => (
-                                  <button
-                                    key={idx}
-                                    onClick={() => addTrait(trait, 'desventaja', category)}
-                                    className="text-left p-3 bg-slate-700 hover:bg-red-900 rounded border border-red-600 transition-colors"
-                                  >
-                                    <div className="flex justify-between items-start">
-                                      <div className="flex-1">
-                                        <div className="font-semibold text-red-200">{trait.name}</div>
-                                        <div className="text-sm text-slate-400 mt-1">{trait.desc}</div>
-                                      </div>
-                                      <span className="text-red-400 ml-2">+</span>
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div className="bg-slate-800 rounded-lg shadow-xl p-6 border-2 border-blue-600 sticky top-4">
-                      <h2 className="text-2xl font-bold text-blue-400 mb-4">Tu Herencia</h2>
-                      
-                      <div className="mb-4 p-4 bg-slate-700 rounded">
-                        <div className="text-center">
-                          <div className="text-4xl font-bold mb-2" style={{color: total === 0 ? '#4ade80' : '#f87171'}}>
-                            {total} PH
-                          </div>
-                          <div className="text-slate-400 text-sm">Balance Total</div>
-                        </div>
-                        
-                        <div className="mt-4 flex justify-around text-center">
-                          <div>
-                            <div className="text-2xl font-bold text-white">{selectedTraits.length}</div>
-                            <div className="text-slate-400 text-xs">Rasgos</div>
-                          </div>
-                          <div>
-                            <div className="text-2xl font-bold text-green-400">
-                              {selectedTraits.filter(t => t.cost > 0).length}
-                            </div>
-                            <div className="text-slate-400 text-xs">Ventajas</div>
-                          </div>
-                          <div>
-                            <div className="text-2xl font-bold text-red-400">
-                              {selectedTraits.filter(t => t.cost < 0).length}
-                            </div>
-                            <div className="text-slate-400 text-xs">Desventajas</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {issues.length > 0 && (
-                        <div className="mb-4 p-3 bg-red-900 bg-opacity-30 border border-red-600 rounded">
-                          <div className="flex items-start gap-2 mb-2">
-                            <span className="text-red-400 mt-1">⚠</span>
-                            <div>
-                              <div className="font-semibold text-red-300">Herencia incompleta:</div>
-                              <ul className="text-sm text-red-200 mt-1 space-y-1">
-                                {issues.map((issue, i) => (
-                                  <li key={i}>• {issue}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {isValid() && (
-                        <div className="mb-4 p-3 bg-green-900 bg-opacity-30 border border-green-600 rounded">
-                          <div className="flex items-center gap-2">
-                            <span className="text-green-400">✓</span>
-                            <div className="font-semibold text-green-300">Herencia válida</div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
-                        {selectedTraits.map(trait => (
-                          <div key={trait.id} className="p-3 bg-slate-700 rounded border-l-4" style={{borderColor: trait.cost > 0 ? '#4ade80' : '#f87171'}}>
-                            <div className="flex justify-between items-start mb-1">
-                              <div className="font-semibold text-white">{trait.name}</div>
-                              <button
-                                onClick={() => removeTrait(trait.id)}
-                                className="text-red-400 hover:text-red-300"
-                              >
-                                ×
-                              </button>
-                            </div>
-                            <div className="text-xs text-slate-400">{trait.desc}</div>
-                            <div className="text-xs mt-1" style={{color: trait.cost > 0 ? '#4ade80' : '#f87171'}}>
-                              {trait.cost > 0 ? '+' : ''}{trait.cost} PH
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="space-y-2">
-                        <button
-                          onClick={exportAsText}
-                          disabled={!isValid()}
-                          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded font-semibold transition-colors flex items-center justify-center gap-2"
-                        >
-                          <span>📄</span>
-                          Exportar como Texto
-                        </button>
-                        <button
-                          onClick={exportAsImage}
-                          disabled={!isValid()}
-                          className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded font-semibold transition-colors flex items-center justify-center gap-2"
-                        >
-                          <span>🖼️</span>
-                          Exportar como Imagen
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                
+                <div>
+                  <label className="block text-green-800 mb-2 font-semibold">Naturaleza (Gratuita) *</label>
+                  <input
+                    type="text"
+                    value={nature}
+                    onChange={(e) => setNature(e.target.value)}
+                    placeholder="Ej: Reptiliano, Resistente"
+                    className="w-full px-4 py-2 bg-amber-50 text-green-900 rounded border-2 border-green-400 focus:border-green-600 outline-none"
+                  />
+                  <p className="text-green-600 text-sm mt-1">La Naturaleza no cuenta en el cálculo de PH</p>
+                </div>
+                
+                <div>
+                  <label className="block text-green-800 mb-2 font-semibold">Descripción (Opcional)</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Describe brevemente esta herencia..."
+                    rows="3"
+                    className="w-full px-4 py-2 bg-amber-50 text-green-900 rounded border-2 border-green-400 focus:border-green-600 outline-none resize-none"
+                  />
                 </div>
               </div>
             </div>
-          );
-        };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<HeritageCreator />);
-    </script>
-</body>
-</html>
+            <div className="bg-white rounded-lg shadow-xl p-6 border-2 border-green-600">
+              <h2 className="text-2xl font-bold text-green-800 mb-4">Biblioteca de Rasgos</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold text-green-700 mb-3">Ventajas</h3>
+                  
+                  {Object.entries(traits.ventajas).map(([category, items]) => {
+                    const key = `ventaja-${category}`;
+                    const isExpanded = expanded[key];
+                    const phValue = category === 'mayor' ? '+3' : category === 'medio' ? '+2' : '+1';
+                    
+                    return (
+                      <div key={category} className="mb-3 border-2 border-green-300 rounded-lg overflow-hidden">
+                        <button
+                          onClick={() => toggleSection(key)}
+                          className="w-full p-3 bg-green-100 hover:bg-green-200 transition-colors flex justify-between items-center"
+                        >
+                          <h4 className="text-lg font-semibold text-red-800 capitalize">
+                            {category} ({phValue} PH) - {items.length} rasgos
+                          </h4>
+                          <span className="text-red-800 text-xl">{isExpanded ? '−' : '+'}</span>
+                        </button>
+                        
+                        {isExpanded && (
+                          <div className="p-3 bg-white space-y-2">
+                            {items.map((trait, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => addTrait(trait)}
+                                className="w-full text-left p-3 bg-red-50 hover:bg-red-100 rounded border border-red-300 transition-colors"
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-red-800">{trait.name}</div>
+                                    <div className="text-sm text-red-700 mt-1">{trait.desc}</div>
+                                  </div>
+                                  <span className="text-red-600 ml-2 text-xl">+</span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-xl p-6 border-2 border-green-600 sticky top-4">
+              <h2 className="text-2xl font-bold text-green-800 mb-4">Tu Herencia</h2>
+              
+              <div className="mb-4 p-4 bg-amber-50 rounded border-2 border-green-400">
+                <div className="text-center">
+                  <div className="text-4xl font-bold mb-2" style={{color: total === 0 ? '#15803d' : '#dc2626'}}>
+                    {total} PH
+                  </div>
+                  <div className="text-green-700 text-sm">Balance Total</div>
+                </div>
+                
+                <div className="mt-4 flex justify-around text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-green-900">{selectedTraits.length}</div>
+                    <div className="text-green-600 text-xs">Rasgos</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {selectedTraits.filter(t => t.cost > 0).length}
+                    </div>
+                    <div className="text-green-600 text-xs">Ventajas</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-red-600">
+                      {selectedTraits.filter(t => t.cost < 0).length}
+                    </div>
+                    <div className="text-green-600 text-xs">Desventajas</div>
+                  </div>
+                </div>
+              </div>
+
+              {issues.length > 0 && (
+                <div className="mb-4 p-3 bg-red-100 border-2 border-red-400 rounded">
+                  <div className="flex items-start gap-2 mb-2">
+                    <span className="text-red-600 mt-1">⚠</span>
+                    <div>
+                      <div className="font-semibold text-red-800">Herencia incompleta:</div>
+                      <ul className="text-sm text-red-700 mt-1 space-y-1">
+                        {issues.map((issue, i) => (
+                          <li key={i}>• {issue}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isValid() && (
+                <div className="mb-4 p-3 bg-green-100 border-2 border-green-500 rounded">
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-700">✓</span>
+                    <div className="font-semibold text-green-800">Herencia válida</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
+                {selectedTraits.map(trait => (
+                  <div key={trait.id} className="p-3 bg-amber-50 rounded border-l-4" style={{borderColor: trait.cost > 0 ? '#15803d' : '#dc2626'}}>
+                    <div className="flex justify-between items-start mb-1">
+                      <div className="font-semibold text-green-900">{trait.name}</div>
+                      <button
+                        onClick={() => removeTrait(trait.id)}
+                        className="text-red-600 hover:text-red-700 font-bold text-lg"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="text-xs text-green-700">{trait.desc}</div>
+                    <div className="text-xs mt-1 font-semibold" style={{color: trait.cost > 0 ? '#15803d' : '#dc2626'}}>
+                      {trait.cost > 0 ? '+' : ''}{trait.cost} PH
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-2">
+                <button
+                  disabled={!isValid()}
+                  className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>📄</span>
+                  Exportar como Texto
+                </button>
+                <button
+                  disabled={!isValid()}
+                  className="w-full py-3 bg-green-700 hover:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>🖼️</span>
+                  Exportar como Imagen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}4 className="text-lg font-semibold text-green-800 capitalize">
+                            {category} ({phValue} PH) - {items.length} rasgos
+                          </h4>
+                          <span className="text-green-800 text-xl">{isExpanded ? '−' : '+'}</span>
+                        </button>
+                        
+                        {isExpanded && (
+                          <div className="p-3 bg-white space-y-2">
+                            {items.map((trait, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => addTrait(trait)}
+                                className="w-full text-left p-3 bg-green-50 hover:bg-green-100 rounded border border-green-300 transition-colors"
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-green-800">{trait.name}</div>
+                                    <div className="text-sm text-green-700 mt-1">{trait.desc}</div>
+                                  </div>
+                                  <span className="text-green-600 ml-2 text-xl">+</span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold text-red-700 mb-3">Desventajas</h3>
+                  
+                  {Object.entries(traits.desventajas).map(([category, items]) => {
+                    const key = `desventaja-${category}`;
+                    const isExpanded = expanded[key];
+                    const phValue = category === 'mayor' ? '-3' : category === 'medio' ? '-2' : '-1';
+                    
+                    return (
+                      <div key={category} className="mb-3 border-2 border-red-300 rounded-lg overflow-hidden">
+                        <button
+                          onClick={() => toggleSection(key)}
+                          className="w-full p-3 bg-red-100 hover:bg-red-200 transition-colors flex justify-between items-center"
+                        >
+                          <h
