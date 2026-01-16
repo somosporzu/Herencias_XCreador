@@ -22,6 +22,13 @@
           const [notif, setNotif] = useState(null);
           const [exp, setExp] = useState({});
 
+          const naturalezas = [
+            'Alegremente','Apasionadamente','Astutamente','Brutalmente','Caóticamente','Carismáticamente',
+            'Cautelosamente','Curiosamente','Despiadadamente','Discretamente','Elegantemente','Fríamente',
+            'Impulsivamente','Inestablemente','Metódicamente','Rápidamente','Silenciosamente','Siniestramente',
+            'Sutilmente','Tenazmente','Torpemente','Valientemente'
+          ];
+
           const data = {
             v: {
               mayor: [
@@ -232,7 +239,13 @@
                         </div>
                         <div>
                           <label className="block text-green-800 mb-2 font-semibold">Naturaleza *</label>
-                          <input type="text" value={nature} onChange={e => setNature(e.target.value)} placeholder="Ej: Reptiliano" className="w-full px-4 py-2 bg-amber-50 text-green-900 rounded border-2 border-green-400 outline-none" />
+                          <select value={nature} onChange={e => setNature(e.target.value)} className="w-full px-4 py-2 bg-amber-50 text-green-900 rounded border-2 border-green-400 outline-none">
+                            <option value="">Selecciona una naturaleza...</option>
+                            {naturalezas.map((nat, i) => (
+                              <option key={i} value={nat}>{nat}</option>
+                            ))}
+                          </select>
+                          <p className="text-green-600 text-sm mt-1">La Naturaleza no cuenta en el cálculo de PH</p>
                         </div>
                         <div>
                           <label className="block text-green-800 mb-2 font-semibold">Descripción (Opcional)</label>
@@ -326,12 +339,12 @@
                         </div>
                       )}
 
-                      <div className="space-y-2 mb-4">
+                      <div className="space-y-2 mb-4 max-h-96 overflow-y-auto">
                         {traits.map(t => (
                           <div key={t.id} className="p-2 bg-amber-50 rounded border-l-4" style={{borderColor: t.c > 0 ? '#15803d' : '#dc2626'}}>
                             <div className="flex justify-between">
                               <span className="font-semibold">{t.n}</span>
-                              <button onClick={() => del(t.id)} className="text-red-600 font-bold">×</button>
+                              <button onClick={() => del(t.id)} className="text-red-600 font-bold hover:text-red-800">×</button>
                             </div>
                             <div className="text-xs">{t.d}</div>
                             <div className="text-xs mt-1 font-semibold" style={{color: t.c > 0 ? '#15803d' : '#dc2626'}}>
@@ -341,14 +354,29 @@
                         ))}
                       </div>
 
-                      <button
-                        onClick={exportText}
+                      {traits.length === 0 && (
+                        <div className="text-center text-gray-500 py-8">
+                          Selecciona rasgos para comenzar
+                        </div>
+                      )}
+
+                      <button 
+                        onClick={exportText} 
                         disabled={!valid}
-                        className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded font-semibold transition-colors flex items-center justify-center gap-2"
+                        className={`w-full py-3 rounded-lg font-bold text-white transition ${
+                          valid 
+                            ? 'bg-green-600 hover:bg-green-700 cursor-pointer' 
+                            : 'bg-gray-400 cursor-not-allowed'
+                        }`}
                       >
-                        <span>📄</span>
-                        Exportar como Texto
+                        Exportar Herencia
                       </button>
+
+                      {valid && (
+                        <div className="mt-4 text-center text-sm text-green-700">
+                          ¡Lista para exportar!
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -357,7 +385,7 @@
           );
         }
 
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
